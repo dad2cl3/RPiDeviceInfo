@@ -17,7 +17,7 @@ def mqtt_publish_single(message):
     publish.single(
         topic='{0}/telemetry/'.format(hostname),
         payload=json.dumps(message),
-        hostname='192.168.0.80',
+        hostname='localhost',
         port=1883
     )
 
