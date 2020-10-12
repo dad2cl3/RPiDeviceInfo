@@ -56,3 +56,10 @@ The messages published by the service are in JSON format:
 ```
 
 ###Removal
+The Korn shell script, *device-info-uninstall.sh*, will remove the service and code from your Raspberry Pi. It assumes the following:
+1. The pi user has made the Korn shell script executable after cloning
+    1.     1. chmod +x device-info-uninstall.sh
+
+Once those steps are complete, it's as simple as executing the Korn shell script:
+
+`(venv) pi@PiDesktop:/var/pyapps/device $ ./device-info-uninstall.sh`
