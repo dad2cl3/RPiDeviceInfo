@@ -1,0 +1,14 @@
+[Unit]
+Description=Device Telemetry
+After=network.target
+
+[Service]
+Type=simple
+User=pi
+Group=pi
+StandardOutput=file:/var/log/messages
+StandardError=file:/var/log/errors
+ExecStart=/var/pyapps/device/venv/bin/python3 /var/pyapps/device/device_info.py
+
+[Install]
+WantedBy=multi-user.target
