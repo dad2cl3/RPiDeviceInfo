@@ -17,15 +17,23 @@ def mqtt_publish_single(message):
     publish.single(
         topic='{0}/telemetry/'.format(hostname),
         payload=json.dumps(message),
-        hostname='localhost',
-        port=1883
+        # hostname='localhost',
+        hostname=config['mqtt']['address'],
+        # port=1883
+        port=config['mqtt']['port']
     )
 
 
+# load the config
+with open('config.json', 'r') as config_file:
+    config = json.load(config_file)
+
 # set the timezone
-tz = timezone('America/New_York')
+# tz = timezone('America/New_York')
+tz = timezone(config['timezone'])
 # set the date time format for telemetry readings
-date_time_format = '%Y-%m-%d %H-%M-%S %z'
+# date_time_format = '%Y-%m-%d %H-%M-%S %z'
+date_time_format = config['date_time_format']
 # get the hostname for telemetry readings
 hostname = gethostname()
 
