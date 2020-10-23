@@ -44,7 +44,7 @@ while True:
 
     cpu_load = cpu_percent(interval=1)
     mem_load = virtual_memory().percent
-    disk_usage = DiskUsage()
+    disk_usage = DiskUsage().usage
 
     print('CPU Temperature {0}'.format(temp))
     print('CPU Load Average {0}'.format(cpu_load))
