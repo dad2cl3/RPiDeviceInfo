@@ -1,12 +1,12 @@
 # RPiDeviceInfo
 Basic Linux service to monitor and publish basic Raspberry Pi device telemetry via MQTT.
 
-###How It Works
+###How It Works###
 The Python script runs as a systemd service and utilizes the [psutil](https://psutil.readthedocs.io/en/latest/) Python library to collect device data from the Raspberry Pi including CPU temperature, CPU load, and memory utilization. Telemetry data is published to an MQTT server utilizing the [Eclipse Paho MQTT](http://www.eclipse.org/paho/) Python library.
 
 **Please note:** The script does assume an MQTT server is listening at the specified address and port in the function *mqtt_publish_single*. [Eclipse Mosquitto](https://mosquitto.org/) runs really well on Raspberry Pi if you are in need of setting up your own.
 
-###Installation
+###Installation###
 The repository includes an installation script that assumes several steps have been completed:
 
 1. The Raspberry Pi has python3 and pip3 pre-installed and the superuser has installed virtualenv.
@@ -19,9 +19,12 @@ The repository includes an installation script that assumes several steps have b
 4. The pi user has created a virtual environment titled "venv" at the path /var/pyapps/device/venv
     1. cd /var/pyapps/device
     2. virtualenv venv
-5. The pi user has installed the necessary dependencies utilizing pip
+5. The pi user has activated the virtual environment created in step 4.
+    1. cd /var/pyapps/device
+    2. source venv/bin/activate
+6. The pi user has installed the necessary dependencies utilizing pip
     1. pip3 install -r requirements.txt --upgrade
-6. The pi user has made the Korn shell script executable after cloning
+7. The pi user has made the Korn shell script executable after cloning
     1. chmod +x device-info-install.sh
 
 Once those steps are complete, it's as simple as executing the Korn shell script:
@@ -34,7 +37,7 @@ The Korn shell script does the following:
 3. Enables the new service within systemd
 4. Starts the new service within systemd
 
-###Testing
+###Testing###
 The easiest way to test the service is to install an MQTT client of your choice. The Raspberry Pi package mosquitto-clients can be installed as follows:
 `pi@PiDesktop:~ $ sudo apt install mosquitto-clients -y`
 
@@ -55,7 +58,7 @@ The messages published by the service are in JSON format:
 }
 ```
 
-###Removal
+###Removal###
 The Korn shell script, *device-info-uninstall.sh*, will remove the service and code from your Raspberry Pi. It assumes the following:
 1. The pi user has made the Korn shell script executable after cloning
     1.     1. chmod +x device-info-uninstall.sh
