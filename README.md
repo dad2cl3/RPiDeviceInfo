@@ -10,7 +10,7 @@ The Python script runs as a systemd service and utilizes the [psutil](https://ps
 The repository includes an installation script that assumes several steps have been completed:
 
 1. The Raspberry Pi has python3 and pip3 pre-installed and the superuser has installed virtualenv.
-    i. sudo pip3 install virtualenv --upgrade
+    1. sudo pip3 install virtualenv --upgrade
 2. The pi user has created the directories necessary to support the path /var/pyapps/device
     1. mkdir /var/pyapps
     2. mkdir /var/pyapps/device 
