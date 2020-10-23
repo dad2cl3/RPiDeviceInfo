@@ -4,7 +4,7 @@ from psutil import cpu_percent, sensors_temperatures, virtual_memory
 from pytz import timezone
 from socket import gethostname
 from time import sleep
-import json, paho.mqtt.publish as publish
+import json, os, paho.mqtt.publish as publish, sys
 
 
 def network_status():
@@ -21,6 +21,9 @@ def mqtt_publish_single(message):
         port=config['mqtt']['port']
     )
 
+
+# build the path
+sys.path.append(os.path.abspath(__file__))
 
 # load the config
 with open('config.json', 'r') as config_file:
