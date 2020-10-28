@@ -54,7 +54,8 @@ The messages published by the service are in JSON format:
     "hostname": "PiDesktop",
     "temperature": 53.556,
     "cpu_load": 4.0,
-    "memory_load": 15.3
+    "memory_load": 15.3,
+    "disk_usage": 6.365664026501454
 }
 ```
 
@@ -66,3 +67,21 @@ The Korn shell script, *device-info-uninstall.sh*, will remove the service and c
 Once those steps are complete, it's as simple as executing the Korn shell script:
 
 `(venv) pi@PiDesktop:/var/pyapps/device $ ./device-info-uninstall.sh`
+
+### Node-RED and Blynk
+Telemetry data can be processed any number of ways. This repository utilizes Node-RED running locally on the Raspberry Pi itself. The Node-RED import file [node-red.json](https://github.com/dad2cl3/RPiDeviceInfo/blob/main/node-red.json) will allow someone to easily import the necessary nodes assuming the following:
+1. Node-RED is running locally on the Raspberry Pi where telemetry is being collected.
+2. The library [node-red-contrib-blynk-ws](https://github.com/gablau/node-red-contrib-blynk-ws) has been added to the palette within Node-RED.
+2. The user has setup a project in Blynk, generated the application key, and added that application key to the Node-RED configuration file prior to import.
+
+The Node-RED import should yield a flow that resembles the following screenshot:
+![Node-RED flow example](https://github.com/dad2cl3/RPiDeviceInfo/blob/main/node-red-screenshot.png)
+
+Blynk has a multitude of options that users can leverage to build applications to their liking. This repository utilizes a SuperChart with the following PIN settings:
+1. V80 - CPU Temperature
+2. V81 - CPU Utilization
+3. V82 - Memory Utilization
+4. V83 - Disk Usage
+
+The screenshot of the expanded SuperChart on an iPhone 11 Pro XS Max:
+![Blynk SuperChart example](https://github.com/dad2cl3/RPiDeviceInfo/blob/main/blynk-screenshot.PNG)
