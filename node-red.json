@@ -1,0 +1,201 @@
+[
+  {
+    "id": "dcd969ad.730e5",
+    "type": "tab",
+    "label": "Host Telemetry",
+    "disabled": false,
+    "info": ""
+  },
+  {
+    "id": "20d9d40a.802d3c",
+    "type": "mqtt in",
+    "z": "dcd969ad.730e5",
+    "name": "Host Telemetry",
+    "topic": "#",
+    "qos": "0",
+    "datatype": "json",
+    "broker": "8477ece1.284bd8",
+    "x": 130,
+    "y": 80,
+    "wires": [
+      [
+        "91fa2aa.36c7458"
+      ]
+    ]
+  },
+  {
+    "id": "91fa2aa.36c7458",
+    "type": "split",
+    "z": "dcd969ad.730e5",
+    "name": "Key/Value split",
+    "splt": "\\n",
+    "spltType": "str",
+    "arraySplt": 1,
+    "arraySpltType": "len",
+    "stream": false,
+    "addname": "topic",
+    "x": 380,
+    "y": 80,
+    "wires": [
+      [
+        "d2839a73.aa4588"
+      ]
+    ]
+  },
+  {
+    "id": "d2839a73.aa4588",
+    "type": "switch",
+    "z": "dcd969ad.730e5",
+    "name": "Key switch",
+    "property": "topic",
+    "propertyType": "msg",
+    "rules": [
+      {
+        "t": "eq",
+        "v": "timestamp",
+        "vt": "str"
+      },
+      {
+        "t": "eq",
+        "v": "hostname",
+        "vt": "str"
+      },
+      {
+        "t": "eq",
+        "v": "temperature",
+        "vt": "str"
+      },
+      {
+        "t": "eq",
+        "v": "cpu_load",
+        "vt": "str"
+      },
+      {
+        "t": "eq",
+        "v": "memory_load",
+        "vt": "str"
+      },
+      {
+        "t": "eq",
+        "v": "disk_usage",
+        "vt": "str"
+      }
+    ],
+    "checkall": "true",
+    "repair": false,
+    "outputs": 6,
+    "x": 590,
+    "y": 80,
+    "wires": [
+      [],
+      [],
+      [
+        "8c36562c.022a"
+      ],
+      [
+        "d1bddc80.d483f8"
+      ],
+      [
+        "35ff1303.d43d7c"
+      ],
+      [
+        "bd46210.6f5646"
+      ]
+    ]
+  },
+  {
+    "id": "8c36562c.022a",
+    "type": "blynk-ws-out-write",
+    "z": "dcd969ad.730e5",
+    "name": "CPU Temperature",
+    "pin": "80",
+    "pinmode": 0,
+    "client": "c4bdac49.3f875",
+    "x": 870,
+    "y": 60,
+    "wires": []
+  },
+  {
+    "id": "d1bddc80.d483f8",
+    "type": "blynk-ws-out-write",
+    "z": "dcd969ad.730e5",
+    "name": "CPU Utilization",
+    "pin": "81",
+    "pinmode": 0,
+    "client": "c4bdac49.3f875",
+    "x": 860,
+    "y": 120,
+    "wires": []
+  },
+  {
+    "id": "35ff1303.d43d7c",
+    "type": "blynk-ws-out-write",
+    "z": "dcd969ad.730e5",
+    "name": "Memory Utilization",
+    "pin": "82",
+    "pinmode": 0,
+    "client": "c4bdac49.3f875",
+    "x": 870,
+    "y": 180,
+    "wires": []
+  },
+  {
+    "id": "bd46210.6f5646",
+    "type": "blynk-ws-out-write",
+    "z": "dcd969ad.730e5",
+    "name": "Disk Usage",
+    "pin": "83",
+    "pinmode": 0,
+    "client": "c4bdac49.3f875",
+    "x": 850,
+    "y": 240,
+    "wires": []
+  },
+  {
+    "id": "8477ece1.284bd8",
+    "type": "mqtt-broker",
+    "z": "",
+    "name": "Host Telemetry",
+    "broker": "localhost",
+    "port": "1883",
+    "clientid": "",
+    "usetls": false,
+    "compatmode": false,
+    "keepalive": "60",
+    "cleansession": true,
+    "birthTopic": "",
+    "birthQos": "0",
+    "birthRetain": "false",
+    "birthPayload": "",
+    "closeTopic": "",
+    "closeQos": "0",
+    "closeRetain": "false",
+    "closePayload": "",
+    "willTopic": "",
+    "willQos": "0",
+    "willRetain": "false",
+    "willPayload": ""
+  },
+  {
+    "id": "c4bdac49.3f875",
+    "type": "blynk-ws-client",
+    "z": "",
+    "name": "Gryphon Blynk",
+    "path": "ws://blynk-cloud.com/websockets",
+    "key": "YOUR-BLYNK-APPLICATION-KEY",
+    "dbg_all": false,
+    "dbg_read": false,
+    "dbg_write": false,
+    "dbg_notify": false,
+    "dbg_mail": false,
+    "dbg_prop": false,
+    "dbg_sync": false,
+    "dbg_bridge": false,
+    "dbg_low": false,
+    "dbg_pins": "",
+    "multi_cmd": false,
+    "proxy_type": "no",
+    "proxy_url": "",
+    "enabled": true
+  }
+]
