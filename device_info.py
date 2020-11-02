@@ -40,11 +40,11 @@ while True:
     sensors = sensors_temperatures()
     for name, entries in sensors.items():
         if name == 'cpu_thermal':
-            temp = entries[0].current
+            temp = round(entries[0].current, 1)
 
     cpu_load = cpu_percent(interval=1)
     mem_load = virtual_memory().percent
-    disk_usage = DiskUsage().usage
+    disk_usage = round(DiskUsage().usage, 1)
 
     print('CPU Temperature {0}'.format(temp))
     print('CPU Load Average {0}'.format(cpu_load))
