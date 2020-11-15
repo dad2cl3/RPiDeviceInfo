@@ -1,6 +1,6 @@
 from datetime import datetime
 from gpiozero import DiskUsage, PingServer
-from psutil import cpu_percent, sensors_temperatures, virtual_memory
+from psutil import cpu_percent, net_if_addrs, sensors_temperatures, virtual_memory
 from pytz import timezone
 from socket import gethostname
 from time import sleep
@@ -42,6 +42,11 @@ while True:
         if name == 'cpu_thermal':
             temp = round(entries[0].current, 1)
 
+    addresses = net_if_addrs()
+    for name, entries in addresses.items():
+        if name == 'wlan0':
+            address = entries[0].address
+
     cpu_load = cpu_percent(interval=1)
     mem_load = virtual_memory().percent
     disk_usage = round(DiskUsage().usage, 1)
@@ -55,6 +60,7 @@ while True:
         mqtt_publish_single({
             'timestamp': now_ts,
             'hostname': hostname,
+            'address': address,
             'temperature': temp,
             'cpu_load': cpu_load,
             'memory_load': mem_load,
