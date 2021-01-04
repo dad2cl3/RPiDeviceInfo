@@ -9,13 +9,13 @@ The Python script runs as a systemd service and utilizes the [psutil](https://ps
 ### Installation
 The repository includes an installation script that assumes several steps have been completed:
 
-1. The Raspberry Pi has python3 and pip3 pre-installed and the superuser has installed virtualenv.
-    1. sudo pip3 install virtualenv --upgrade
-2. The pi user has created the directories necessary to support the path /var/pyapps/device
+1. The pi user has created the directories necessary to support the path /var/pyapps/device
     1. mkdir /var/pyapps
     2. mkdir /var/pyapps/device 
-3. The pi user has cloned the repository to the folder /var/pyapps/device
+2. The pi user has cloned the repository to the folder /var/pyapps/device
     1. git clone https://github.com/dad2cl3/RPiDeviceInfo.git .
+3. The Raspberry Pi has python3 and pip3 pre-installed and the superuser has installed virtualenv.
+    1. sudo pip3 install virtualenv --upgrade
 4. The pi user has created a virtual environment titled "venv" at the path /var/pyapps/device/venv
     1. cd /var/pyapps/device
     2. virtualenv venv
