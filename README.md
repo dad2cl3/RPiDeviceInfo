@@ -2,7 +2,7 @@
 Basic Linux service to monitor and publish basic Raspberry Pi device telemetry via MQTT.
 
 ### How It Works
-The Python script runs as a systemd service and utilizes the [psutil](https://psutil.readthedocs.io/en/latest/) Python library to collect device data from the Raspberry Pi including CPU temperature, CPU load, and memory utilization. Telemetry data is published to an MQTT server utilizing the [Eclipse Paho MQTT](http://www.eclipse.org/paho/) Python library.
+The Python script runs as a systemd service and utilizes the [psutil](https://psutil.readthedocs.io/en/latest/) Python library to collect device data from the Raspberry Pi including CPU temperature, CPU load, and memory utilization. Also, it utilizes built-in functionality to determine the hostname and uptime for the Raspberry Pi. Telemetry data is published to an MQTT server utilizing the [Eclipse Paho MQTT](http://www.eclipse.org/paho/) Python library.
 
 **Please note:** The script does assume an MQTT server is listening at the specified address and port in the function *mqtt_publish_single*. [Eclipse Mosquitto](https://mosquitto.org/) runs really well on Raspberry Pi if you are in need of setting up your own.
 
@@ -43,19 +43,26 @@ The easiest way to test the service is to install an MQTT client of your choice.
 
 Should you choose to utilize the mosquitto-clients package on a Raspberry Pi, the command to listen to messages from the service is as follows:
 
-`pi@PiDesktop:~ $ mosquitto_sub -h localhost -t PiDesktop/# -q 1`
+`pi@PiDesktop:~ $ mosquitto_sub -h localhost -t RPiDeviceInfo/# -q 1`
 
 where the `-h` switch is followed by the address of your MQTT server and the `-t` switch is followed by the hostname of the Raspberry Pi where the service is running.
 
 The messages published by the service are in JSON format:
 ```
 {
-    "timestamp": "2020-10-12 16-38-14 -0400",
+    "timestamp": "2021-03-01 16-57-53 -0500",
     "hostname": "PiDesktop",
-    "temperature": 53.556,
-    "cpu_load": 4.0,
-    "memory_load": 15.3,
-    "disk_usage": 6.365664026501454
+    "address": "192.168.0.80",
+    "uptime": {
+      "days": 18,
+      "hours": 3,
+      "minutes": 49,
+      "seconds": 5.59
+    },
+    "temperature": 5.5,
+    "cpu_load": 7.6,
+    "memory_load": 40.3,
+    "disk_usage": 43.9
 }
 ```
 
@@ -77,11 +84,15 @@ Telemetry data can be processed any number of ways. This repository utilizes Nod
 The Node-RED import should yield a flow that resembles the following screenshot:
 ![Node-RED flow example](https://github.com/dad2cl3/RPiDeviceInfo/blob/main/node-red-screenshot.png)
 
-Blynk has a multitude of options that users can leverage to build applications to their liking. This repository utilizes a SuperChart with the following PIN settings:
-1. V80 - CPU Temperature
-2. V81 - CPU Utilization
-3. V82 - Memory Utilization
-4. V83 - Disk Usage
+Blynk has a multitude of options that users can leverage to build applications to their liking. This repository utilizes a Device Selector, four gauges, and three Value Displays with the following PIN settings:
+1. V0 - CPU Temperature
+2. V1 - CPU Utilization
+3. V2 - Memory Utilization
+4. V3 - Disk Usage
+5. V4 - Last Reading
+6. V5 - IP Address
+7. V10 - Uptime
+8. Device Selector
 
-The screenshot of the expanded SuperChart on an iPhone 11 Pro XS Max:
+The screenshot of the Blynk application on an iPhone 11 Pro XS Max:
 ![Blynk SuperChart example](https://github.com/dad2cl3/RPiDeviceInfo/blob/main/blynk-screenshot.PNG)
