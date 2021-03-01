@@ -94,5 +94,13 @@ Blynk has a multitude of options that users can leverage to build applications t
 7. V10 - Uptime
 8. Device Selector
 
+#### Blynk Device Selector
+The Blynk application supports many Raspberry Pi devices in a single application. The Device Selector handles all of the devices by assigning a unique key to each device used in the application. As a result, the Node-RED flow will require a unique Blynk connection for each device to be viewed in the Blynk application. The gauges and value displays will change as the device is changed in the Device Selector.
+![Open Blynk Device Selector](https://github.com/dad2cl3/RPiDeviceInfo/blob/main/blynk-device-selector.PNG)
+Each device is added to the Blynk Device Selector in order to generate a unique Blynk key for each device.
+![Open Blynk Device Selector configuration](https://github.com/dad2cl3/RPiDeviceInfo/blob/main/blynk-device-selector-configuration.PNG)
+Each Blynk widget also needs to be configured to use the Blynk Device Selector.
+![Open Blynk Gauge configuration to use Device Selector](https://github.com/dad2cl3/RPiDeviceInfo/blob/main/blynk-gauge-configuration.PNG)
+
 The screenshot of the Blynk application on an iPhone 11 Pro XS Max:
-![Blynk SuperChart example](https://github.com/dad2cl3/RPiDeviceInfo/blob/main/blynk-screenshot.PNG)
+![Blynk application](https://github.com/dad2cl3/RPiDeviceInfo/blob/main/blynk-screenshot.PNG)
