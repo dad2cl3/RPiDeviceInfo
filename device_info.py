@@ -21,7 +21,10 @@ def get_uptime():
     day_seconds = 24 * 60 * 60
     hour_seconds = 60 * 60
     minute_seconds = 60
+<<<<<<< HEAD
     # week_seconds = day_seconds * 7 # possible addition
+=======
+>>>>>>> e94a5ca9609000be63375b99e107969d49d6627e
 
     if uptime_seconds > day_seconds:
         days = floor(uptime_seconds/day_seconds)
