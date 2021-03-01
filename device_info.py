@@ -1,9 +1,11 @@
 from datetime import datetime
+from math import floor
+
 from gpiozero import DiskUsage, PingServer
 from psutil import cpu_percent, net_if_addrs, sensors_temperatures, virtual_memory
 from pytz import timezone
 from socket import gethostname
-from time import sleep
+from time import sleep, time
 import json, paho.mqtt.publish as publish
 
 
@@ -12,14 +14,54 @@ def network_status():
     return ping.value
 
 
+def get_uptime():
+    with open('/proc/uptime', 'r') as uptime_file:
+        uptime_seconds = float(uptime_file.readline().split()[0])
+
+    day_seconds = 24 * 60 * 60
+    hour_seconds = 60 * 60
+    minute_seconds = 60
+
+    if uptime_seconds > day_seconds:
+        days = floor(uptime_seconds/day_seconds)
+        uptime_seconds -= days * day_seconds
+    else:
+        days = 0
+
+    if uptime_seconds > hour_seconds:
+        # hours = floor((uptime_seconds - (days * day_seconds))/hour_seconds)
+        hours = floor(uptime_seconds/hour_seconds)
+        uptime_seconds -= hours * hour_seconds
+    else:
+        hours = 0
+
+    if uptime_seconds > minute_seconds:
+        minutes = floor(uptime_seconds/minute_seconds)
+        uptime_seconds -= minutes * minute_seconds
+    else:
+        minutes = 0
+
+    uptime = {
+        'days': days,
+        'hours': hours,
+        'minutes': minutes,
+        'seconds': round(uptime_seconds, 2)
+    }
+
+    return uptime
+
+
 def mqtt_publish_single(message):
 
-    publish.single(
-        topic='{0}/telemetry/'.format(hostname),
-        payload=json.dumps(message),
-        hostname=config['mqtt']['address'],
-        port=config['mqtt']['port']
-    )
+    try:
+        publish.single(
+            topic='{0}/telemetry/'.format(hostname),
+            payload=json.dumps(message),
+            hostname=config['mqtt']['address'],
+            port=config['mqtt']['port']
+        )
+    except ConnectionError as e:
+        print(e)
 
 
 # load the config
@@ -36,6 +78,8 @@ hostname = gethostname()
 while True:
     now = tz.localize(datetime.now())
     now_ts = now.strftime(date_time_format)
+
+    uptime = get_uptime()
 
     sensors = sensors_temperatures()
     for name, entries in sensors.items():
@@ -55,12 +99,14 @@ while True:
     print('CPU Load Average {0}'.format(cpu_load))
     print('Memory Load Average {0}'.format(mem_load))
     print('Disk Usage {0}'.format(disk_usage))
+    print('Uptime {0}'.format(uptime))
 
     if network_status():
         mqtt_publish_single({
             'timestamp': now_ts,
             'hostname': hostname,
             'address': address,
+            'uptime': uptime,
             'temperature': temp,
             'cpu_load': cpu_load,
             'memory_load': mem_load,
