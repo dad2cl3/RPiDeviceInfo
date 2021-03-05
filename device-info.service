@@ -6,10 +6,10 @@ After=network.target
 Type=simple
 User=pi
 Group=pi
-WorkingDirectory=/var/pyapps/device
+WorkingDirectory=/var/pyapps/RPiDeviceInfo
 StandardOutput=file:/var/log/messages
 StandardError=file:/var/log/errors
-ExecStart=/var/pyapps/device/venv/bin/python3 /var/pyapps/device/device_info.py
+ExecStart=/var/pyapps/RPiDeviceInfo/venv/bin/python3 /var/pyapps/RPiDeviceInfo/device_info.py
 
 [Install]
 WantedBy=multi-user.target

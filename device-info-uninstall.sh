@@ -9,4 +9,4 @@ sudo systemctl disable device-info.service
 sudo systemctl daemon-reload
 
 # remove the local files
-sudo rm -rf /var/pyapps/device
+sudo rm -rf /var/pyapps/RPiDeviceInfo

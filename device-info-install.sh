@@ -1,5 +1,5 @@
 # create symlink from local project service file to systemd
-sudo ln -sf /var/pyapps/device/device-info.service /etc/systemd/system/device-info.service
+sudo ln -sf /var/pyapps/RPiDeviceInfo/device-info.service /etc/systemd/system/device-info.service
 
 # reload the systemd daemon
 # NOTE: any change to the local project service file will require a reload
