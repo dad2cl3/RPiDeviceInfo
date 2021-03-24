@@ -2,7 +2,9 @@
   "mqtt": {
     "address": "localhost",
     "port": 1883,
-    "topic_prefix": "RPiDeviceInfo"
+    "topic_prefix": "RPiDeviceInfo",
+    "qos": 0,
+    "topic": "remote/command/request"
   },
   "timezone": "America/New_York",
   "date_time_format": "%Y-%m-%d %H-%M-%S %z",
