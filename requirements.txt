@@ -4,3 +4,5 @@ paho-mqtt==1.5.1
 psutil==5.7.2
 pytz==2020.1
 RPi.GPIO==0.7.0
+UPnPy==1.1.8
+vcgencmd==0.1.1
