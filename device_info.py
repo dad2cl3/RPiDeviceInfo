@@ -3,10 +3,57 @@ from math import floor
 
 from gpiozero import DiskUsage, PingServer
 from psutil import cpu_percent, net_if_addrs, sensors_temperatures, virtual_memory
+import upnpy
 from pytz import timezone
 from socket import gethostname
 from time import sleep, time
 import json, paho.mqtt.publish as publish
+import paho.mqtt.client as mqtt
+import subprocess
+import os, re, sys
+from vcgencmd import Vcgencmd
+
+sys.path.append('./')
+
+
+# MQTT callbacks
+def on_connect(client, userdata, flags, rc):
+    print('MQTT broker connected...')
+    topic = '{0}/{1}'.format(hostname, config['mqtt']['topic'])
+    # client.subscribe(config['mqtt']['topic'], qos=config['mqtt']['qos'])
+    client.subscribe(topic, qos=config['mqtt']['qos'])
+
+
+def on_disconnect(client, userdata, rc):
+    print('MQTT broker disconnected...')
+
+
+def on_subscribe(client, userdata, mid, granted_qos):
+    print('MQTT topic subscribed...')
+
+
+def on_message(client, userdata, msg):
+    print('Message recieved...')
+
+    # expected message format
+    # {
+    #     "command": "reboot",
+    #     "options": [
+    #         "now"
+    #     ]
+    # }
+
+    print(msg.payload.decode('utf-8'))
+    cmd_array = ['sudo']
+    cmd_array.extend(msg.payload.split())
+
+    output = subprocess.run(cmd_array, capture_output=True)
+    output_payload = output.stdout.decode('utf-8')
+    print(output_payload)
+
+    mqtt_publish_single('PiDesktop/remote/command/response', output_payload)
+
+    # subprocess.run(['sudo', 'systemctl', 'restart', 'device-info'])
 
 
 def network_status():
@@ -52,17 +99,56 @@ def get_uptime():
     return uptime
 
 
-def mqtt_publish_single(message):
+def get_cpu_throttle():
+    definitions = {
+        '0': 'Under-voltage detected',
+        '1': 'ARM frequency capped',
+        '2': 'Currently throttled',
+        '3': 'Soft temperature limit active',
+        '16': 'Under-voltage has occurred',
+        '17': 'ARM frequency capping has occurred',
+        '18': 'Throttling has occurred',
+        '19': 'Soft temperature limit has occurred'
+    }
+
+    vcgm = Vcgencmd()
+    throttle_state = vcgm.get_throttled()
+    throttle_states = []
+
+    for bit in throttle_state['breakdown']:
+        if throttle_state['breakdown'][bit]:
+            throttle_states.append(definitions[bit])
+
+    return throttle_states
+
+
+def mqtt_publish_single(topic, message):
 
     try:
         publish.single(
-            topic='{0}/{1}/telemetry/'.format(config['mqtt']['topic_prefix'], hostname),
+            # topic='{0}/{1}/telemetry/'.format(config['mqtt']['topic_prefix'], hostname),
+            topic=topic,
             payload=json.dumps(message),
             hostname=config['mqtt']['address'],
             port=config['mqtt']['port']
         )
     except ConnectionError as e:
         print(e)
+
+
+def get_external_ip():
+    try:
+        upnp = upnpy.UPnP()
+        devices = upnp.discover()
+        device = upnp.get_igd()
+
+        service = device.WANIPConn1
+
+        addr = service.GetExternalIPAddress()
+
+        return addr['NewExternalIPAddress']
+    except Exception as e:
+        return
 
 
 # load the config
@@ -76,42 +162,109 @@ date_time_format = config['date_time_format']
 # get the hostname for telemetry readings
 hostname = gethostname()
 
-while True:
-    now = tz.localize(datetime.now())
-    now_ts = now.strftime(date_time_format)
+# compile regex for ip address
+regex = re.compile('\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}')
 
-    uptime = get_uptime()
+# setup the MQTT client
+client = mqtt.Client(hostname + "Service")
+client.on_connect = on_connect
+client.on_disconnect = on_disconnect
+client.on_subscribe = on_subscribe
+client.on_message = on_message
 
-    sensors = sensors_temperatures()
-    for name, entries in sensors.items():
-        if name == 'cpu_thermal':
-            temp = round(entries[0].current, 1)
+client.connect(
+    host=config['mqtt']['address'],
+    port=config['mqtt']['port']
+)
+# start the MQTT client loop
+client.loop_start()
 
-    addresses = net_if_addrs()
-    for name, entries in addresses.items():
-        if name == 'wlan0':
-            address = entries[0].address
+try:
+    # reset the Blynk reboot button following boot
+    topic = '{0}/{1}/{2}'.format(hostname, config['mqtt']['topic'], 'reset')
+    mqtt_publish_single(topic, 0)
 
-    cpu_load = cpu_percent(interval=1)
-    mem_load = virtual_memory().percent
-    disk_usage = round(DiskUsage().usage, 1)
+    # create MQTT topic
+    topic = '{0}/{1}/telemetry/'.format(config['mqtt']['topic_prefix'], hostname)
 
-    print('CPU Temperature {0}'.format(temp))
-    print('CPU Load Average {0}'.format(cpu_load))
-    print('Memory Load Average {0}'.format(mem_load))
-    print('Disk Usage {0}'.format(disk_usage))
-    print('Uptime {0}'.format(uptime))
+    while True:
+        now = tz.localize(datetime.now())
+        now_ts = now.strftime(date_time_format)
 
-    if network_status():
-        mqtt_publish_single({
-            'timestamp': now_ts,
-            'hostname': hostname,
-            'address': address,
-            'uptime': uptime,
-            'temperature': temp,
-            'cpu_load': cpu_load,
-            'memory_load': mem_load,
-            'disk_usage': disk_usage
-        })
+        uptime = get_uptime()
 
-    sleep(60)
+        sensors = sensors_temperatures()
+        for name, entries in sensors.items():
+            if name == 'cpu_thermal':
+                temp = round(entries[0].current, 1)
+
+        # get local network IP address
+        addresses = net_if_addrs()
+        for name, entries in addresses.items():
+            ip_addr = entries[0].address
+
+            if not ip_addr == '127.0.0.1':
+                if re.match(regex, ip_addr) and name in ['eth0', 'wlan0']:
+                    # print('{0} - {1}'.format(name, address))
+                    address = ip_addr
+            # if name == 'wlan0':
+                # address = entries[0].address
+
+        # get gateway IP address
+        gateway_ip = get_external_ip()
+
+        cpu_load = cpu_percent(interval=1)
+        mem_load = virtual_memory().percent
+        disk_usage = round(DiskUsage().usage, 1)
+
+        # get CPU throttle status
+        throttle_states = get_cpu_throttle()
+        throttle_status = ''
+        if len(throttle_states) > 0:
+            for throttle_state in throttle_states:
+                throttle_status += '[' + now_ts + '] ' + throttle_state + '\n'
+        else:
+            throttle_status = '[' + now_ts + '] ' + 'CPU not throttled'
+
+        print('CPU Temperature {0}'.format(temp))
+        print('CPU Load Average {0}'.format(cpu_load))
+        print('Memory Load Average {0}'.format(mem_load))
+        print('Disk Usage {0}'.format(disk_usage))
+        print('CPU Throttle {0}'.format(throttle_status))
+        print('Uptime {0}'.format(uptime))
+        print('IP Address {0}'.format(address))
+        print('Gateway Address {0}'.format(gateway_ip))
+
+        if network_status():
+            if gateway_ip:
+                payload = {
+                    'timestamp': now_ts,
+                    'hostname': hostname,
+                    'address': address,
+                    'gateway': gateway_ip,
+                    'uptime': uptime,
+                    'temperature': temp,
+                    'cpu_load': cpu_load,
+                    'memory_load': mem_load,
+                    'disk_usage': disk_usage,
+                    'cpu_throttle': throttle_status
+                }
+            else:
+                payload = {
+                    'timestamp': now_ts,
+                    'hostname': hostname,
+                    'address': address,
+                    'uptime': uptime,
+                    'temperature': temp,
+                    'cpu_load': cpu_load,
+                    'memory_load': mem_load,
+                    'disk_usage': disk_usage,
+                    'cpu_throttle': throttle_status
+                }
+
+            mqtt_publish_single(topic, payload)
+
+        sleep(60)
+except KeyboardInterrupt:
+    client.loop_stop()
+    client.disconnect()
