@@ -134,6 +134,8 @@ def mqtt_publish_single(topic, message):
         )
     except ConnectionError as e:
         print(e)
+    except OSError as oe:
+        print(oe)
 
 
 def get_external_ip():
@@ -149,6 +151,21 @@ def get_external_ip():
         return addr['NewExternalIPAddress']
     except Exception as e:
         return
+
+
+def get_service_status():
+    status_array = []
+
+    services = config['services']
+
+    for service in services:
+        cmd_array = ['sudo', 'systemctl', 'is-active', service]
+        status = subprocess.run(cmd_array, capture_output=True)
+        status_payload = status.stdout.decode('utf8')
+
+        status_array.append({service: status_payload})
+
+    return status_array
 
 
 # load the config
@@ -235,6 +252,15 @@ try:
         print('IP Address {0}'.format(address))
         print('Gateway Address {0}'.format(gateway_ip))
 
+        # get service status
+        service_status = []
+
+        if 'services' in config:
+            if len(config['services']) > 0:
+                service_status = get_service_status()
+
+        print('Service status {0}'.format(service_status))
+
         if network_status():
             if gateway_ip:
                 payload = {
@@ -247,7 +273,8 @@ try:
                     'cpu_load': cpu_load,
                     'memory_load': mem_load,
                     'disk_usage': disk_usage,
-                    'cpu_throttle': throttle_status
+                    'cpu_throttle': throttle_status,
+                    'service_status': service_status
                 }
             else:
                 payload = {
@@ -259,7 +286,8 @@ try:
                     'cpu_load': cpu_load,
                     'memory_load': mem_load,
                     'disk_usage': disk_usage,
-                    'cpu_throttle': throttle_status
+                    'cpu_throttle': throttle_status,
+                    'service_status': service_status
                 }
 
             mqtt_publish_single(topic, payload)
