@@ -8,5 +8,8 @@
   },
   "timezone": "America/New_York",
   "date_time_format": "%Y-%m-%d %H-%M-%S %z",
-  "ping_target": "google.com"
+  "ping_target": "google.com",
+  "services": [
+    "skyweather2"
+  ]
 }
