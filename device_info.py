@@ -61,6 +61,13 @@ def network_status():
     return ping.value
 
 
+def get_device_type():
+    with open("/proc/device-tree/model") as device_file:
+        device_type = device_file.read()
+
+    return device_type
+
+
 def get_uptime():
     with open('/proc/uptime', 'r') as uptime_file:
         uptime_seconds = float(uptime_file.readline().split()[0])
@@ -208,6 +215,8 @@ try:
         now = tz.localize(datetime.now())
         now_ts = now.strftime(date_time_format)
 
+        device_type = get_device_type()
+
         uptime = get_uptime()
 
         sensors = sensors_temperatures()
@@ -243,6 +252,7 @@ try:
         else:
             throttle_status = '[' + now_ts + '] ' + 'CPU not throttled'
 
+        print('Device Type {0}'.format(device_type))
         print('CPU Temperature {0}'.format(temp))
         print('CPU Load Average {0}'.format(cpu_load))
         print('Memory Load Average {0}'.format(mem_load))
@@ -265,6 +275,7 @@ try:
             if gateway_ip:
                 payload = {
                     'timestamp': now_ts,
+                    'device_type': device_type,
                     'hostname': hostname,
                     'address': address,
                     'gateway': gateway_ip,
@@ -279,6 +290,7 @@ try:
             else:
                 payload = {
                     'timestamp': now_ts,
+                    'device_type': device_type,
                     'hostname': hostname,
                     'address': address,
                     'uptime': uptime,

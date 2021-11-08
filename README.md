@@ -91,8 +91,14 @@ Blynk has a multitude of options that users can leverage to build applications t
 4. V3 - Disk Usage
 5. V4 - Last Reading
 6. V5 - IP Address
-7. V10 - Uptime
-8. Device Selector
+7. V7 - Gateway IP Address
+8. V8 - CPU Throttle Status
+9. V9 - Remote Command Terminal
+9. V10 - Uptime
+10. V11 - Styled Button (Clear remote terminal)
+11. V15 - Styled Button (Clear CPU throttle status)
+12. Device Selector
+13. Notifications
 
 #### Blynk Device Selector
 The Blynk application supports many Raspberry Pi devices in a single application. The Device Selector handles all of the devices by assigning a unique key to each device used in the application. As a result, the Node-RED flow will require a unique Blynk connection for each device to be viewed in the Blynk application. The gauges and value displays will change as the device is changed in the Device Selector.
