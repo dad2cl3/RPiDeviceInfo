@@ -63,9 +63,20 @@ def network_status():
 
 def get_device_type():
     with open("/proc/device-tree/model") as device_file:
-        device_type = device_file.read()
+        device_type = device_file.read().replace('\x00', '')
 
     return device_type
+
+
+def get_os_version():
+    with open('/etc/os-release') as version_file:
+        os_version = version_file.read()
+
+        print(os_version)
+
+    pretty_name = os_version.split('\n')[0].split('=')[1].replace('"', '')
+
+    return pretty_name
 
 
 def get_uptime():
@@ -107,26 +118,29 @@ def get_uptime():
 
 
 def get_cpu_throttle():
-    definitions = {
-        '0': 'Under-voltage detected',
-        '1': 'ARM frequency capped',
-        '2': 'Currently throttled',
-        '3': 'Soft temperature limit active',
-        '16': 'Under-voltage has occurred',
-        '17': 'ARM frequency capping has occurred',
-        '18': 'Throttling has occurred',
-        '19': 'Soft temperature limit has occurred'
-    }
-
+    # definitions = {
+    #     '0': 'Under-voltage detected',
+    #     '1': 'ARM frequency capped',
+    #     '2': 'Currently throttled',
+    #     '3': 'Soft temperature limit active',
+    #     '16': 'Under-voltage has occurred',
+    #     '17': 'ARM frequency capping has occurred',
+    #     '18': 'Throttling has occurred',
+    #     '19': 'Soft temperature limit has occurred'
+    # }
+    #
     vcgm = Vcgencmd()
     throttle_state = vcgm.get_throttled()
-    throttle_states = []
+    # throttle_states = []
+    #
+    # for bit in throttle_state['breakdown']:
+    #     if throttle_state['breakdown'][bit]:
+    #         throttle_states.append(definitions[bit])
+    #
+    # return throttle_states
+    breakdown = throttle_state['breakdown']
 
-    for bit in throttle_state['breakdown']:
-        if throttle_state['breakdown'][bit]:
-            throttle_states.append(definitions[bit])
-
-    return throttle_states
+    return breakdown
 
 
 def mqtt_publish_single(topic, message):
@@ -216,7 +230,7 @@ try:
         now_ts = now.strftime(date_time_format)
 
         device_type = get_device_type()
-
+        os_version = get_os_version()
         uptime = get_uptime()
 
         sensors = sensors_temperatures()
@@ -244,20 +258,22 @@ try:
         disk_usage = round(DiskUsage().usage, 1)
 
         # get CPU throttle status
-        throttle_states = get_cpu_throttle()
-        throttle_status = ''
-        if len(throttle_states) > 0:
-            for throttle_state in throttle_states:
-                throttle_status += '[' + now_ts + '] ' + throttle_state + '\n'
-        else:
-            throttle_status = '[' + now_ts + '] ' + 'CPU not throttled'
+        # throttle_states = get_cpu_throttle()
+        # throttle_status = ''
+        # if len(throttle_states) > 0:
+        #     for throttle_state in throttle_states:
+        #         throttle_status += '[' + now_ts + '] ' + throttle_state + '\n'
+        # else:
+        #     throttle_status = '[' + now_ts + '] ' + 'CPU not throttled'
+        throttle_breakdown = get_cpu_throttle()
 
         print('Device Type {0}'.format(device_type))
+        print('OS Version {0}'.format(os_version))
         print('CPU Temperature {0}'.format(temp))
         print('CPU Load Average {0}'.format(cpu_load))
         print('Memory Load Average {0}'.format(mem_load))
         print('Disk Usage {0}'.format(disk_usage))
-        print('CPU Throttle {0}'.format(throttle_status))
+        # print('CPU Throttle {0}'.format(throttle_status))
         print('Uptime {0}'.format(uptime))
         print('IP Address {0}'.format(address))
         print('Gateway Address {0}'.format(gateway_ip))
@@ -276,6 +292,7 @@ try:
                 payload = {
                     'timestamp': now_ts,
                     'device_type': device_type,
+                    'os_version': os_version,
                     'hostname': hostname,
                     'address': address,
                     'gateway': gateway_ip,
@@ -284,13 +301,15 @@ try:
                     'cpu_load': cpu_load,
                     'memory_load': mem_load,
                     'disk_usage': disk_usage,
-                    'cpu_throttle': throttle_status,
+                    # 'cpu_throttle': throttle_status,
+                    'cpu_throttle': throttle_breakdown,
                     'service_status': service_status
                 }
             else:
                 payload = {
                     'timestamp': now_ts,
                     'device_type': device_type,
+                    'os_version': os_version,
                     'hostname': hostname,
                     'address': address,
                     'uptime': uptime,
@@ -298,7 +317,8 @@ try:
                     'cpu_load': cpu_load,
                     'memory_load': mem_load,
                     'disk_usage': disk_usage,
-                    'cpu_throttle': throttle_status,
+                    # 'cpu_throttle': throttle_status,
+                    'cpu_throttle': throttle_breakdown,
                     'service_status': service_status
                 }
 
